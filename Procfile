@@ -1,1 +1,1 @@
-worker: python assistant.py
+worker: python -u assistant.py 
