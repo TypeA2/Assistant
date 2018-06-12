@@ -4,7 +4,6 @@ from dateutil import tz
 
 settings = {
     "AUTH_TOKEN": os.environ["DISCORD_TOKEN"],
-    "category": int(os.environ["ASSISTANT_CATEGORY"]),
     "channels": []
 }
 
@@ -85,13 +84,6 @@ async def on_ready():
     print(assistant.user)
     print("--------------")
 
-    #for c in assistant.get_all_channels():
-    #    if type(c) == discord.channel.CategoryChannel and c.id == settings["category"]:
-    #        settings["channels"] = c.channels
-
-    #print("Got {} channels under category {}".format(len(settings["channels"]), settings["category"]))
-
-    print("Binding to category {}".format(settings["category"]))
 
 
 @assistant.command()
