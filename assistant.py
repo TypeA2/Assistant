@@ -11,7 +11,7 @@ assistant = commands.Bot(command_prefix="/", description="I'm not your assistant
 
 async def check_updates():
     await assistant.wait_until_ready()
-    if not assistant.is_closed():
+    while not assistant.is_closed():
         print("Reloading channel list")
 
         settings["channels"] = json.loads(requests.get(os.environ["CHANNEL_LIST_URL"]).text)
@@ -74,8 +74,11 @@ async def check_updates():
 
             print("      {} out of {}".format(len(ids), len(ids)))
 
-
-       #await asyncio.sleep(43200)
+        slept = 0
+        while slept < 3600:
+            print("Sleeping for {} more seconds".format(3600 - slept))
+            slept += 5
+            await asyncio.sleep(5)
 
 
 @assistant.event
