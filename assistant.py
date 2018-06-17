@@ -152,13 +152,18 @@ async def add(ctx, tag: str = ""):
 
                     category = assistant.get_channel(settings["assistant_category"])
 
-                    new_channel = await server.create_text_channel(name, category=category)
-
                     channels = []
 
                     for c in category.channels:
                         if c.id != settings["requests"]:
                             channels.append(c.name)
+
+                    if name in channels:
+                        print("  Channel \"{}\" already exists".format(name))
+                        await ctx.send("Channel already exists!")
+                        return
+
+                    new_channel = await server.create_text_channel(name, category=category)
 
                     channels.append(name)
 
@@ -166,9 +171,22 @@ async def add(ctx, tag: str = ""):
 
                     index = channels.index(name) + 1
 
-                    await new_channel.edit(topic=tag)
-                    await new_channel.edit(nsfw=True)
-                    await new_channel.edit(position=index)
+                    print("    Index: {}".format(index))
+
+                    try:
+                        await new_channel.edit(topic=tag)
+                    except discord.errors.Forbidden:
+                        print("    Permission error setting topic for \"{}\"".format(name))
+
+                    try:
+                        await new_channel.edit(nsfw=True)
+                    except discord.errors.Forbidden:
+                        print("    Permission error setting nsfw for \"{}\"".format(name))
+                    
+                    try:
+                        await new_channel.edit(position=index)
+                    except discord.errors.Forbidden:
+                        print("    Permission error setting index for \"{}\"".format(name))
 
                     print("    Created text channel \"{}\" at index {}".format(name, index))
 
@@ -208,5 +226,5 @@ async def christina(ctx):
     if ctx.message.channel.category_id != settings["assistant_category"]:
         await ctx.send("There's no -tina!")
 
-assistant.loop.create_task(check_updates())
+#assistant.loop.create_task(check_updates())
 assistant.run(settings["AUTH_TOKEN"])
