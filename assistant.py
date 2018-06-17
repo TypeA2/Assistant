@@ -226,5 +226,5 @@ async def christina(ctx):
     if ctx.message.channel.category_id != settings["assistant_category"]:
         await ctx.send("There's no -tina!")
 
-#assistant.loop.create_task(check_updates())
+assistant.loop.create_task(check_updates())
 assistant.run(settings["AUTH_TOKEN"])
