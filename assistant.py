@@ -47,7 +47,7 @@ async def check_updates():
 
             if len(history) == 1:
                 try:
-                    prev = re.search(r"https:\/\/danbooru.donmai.us\/posts\/(\d+)", history[0].embeds[0].url).group(1)
+                    prev = re.search(r"https:\/\/danbooru.donmai.us\/posts\/(\d+)", history[0].content).group(1)
                 except IndexError:
                     print ("      IndexError when parsing regex for string \"{}\"".format(history[0].embeds[0].url))
                     continue
