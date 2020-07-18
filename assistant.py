@@ -78,13 +78,16 @@ async def check_updates():
 
             for p in range(pagecount):
                 data = f"tags={tag}+id:>{prev}&page={p + 1}&limit=200"
-                print(f"      Loading page {p + 1} of {pagecount}\n      Data: {data}")
-                posts.extend(json.loads(requests.get(
-                    f"{baseurl}?{data}&login={settings['danbooru_user']}&api_key={settings['danbooru_key']}").text))
+                url = f"{baseurl}?{data}&login={settings['danbooru_user']}&api_key={settings['danbooru_key']}"
+                posts.extend(json.loads(requests.get(url).text))
 
             ids = []
             for p in posts:
-                ids.append(p["id"])
+                try:
+                    ids.append(p["id"])
+                except:
+                    print(f"      Could not retrieve id of: {p}")
+                    continue
 
             ids = sorted(list(set(ids)), key=int)
 
