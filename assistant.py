@@ -71,7 +71,7 @@ async def check_updates():
                 continue
 
             posts = []
-            baseurl = "https://danbooru.donmai.us/posts.json?"
+            baseurl = "https://danbooru.donmai.us/posts.json"
 
             # https://stackoverflow.com/a/17511341
             pagecount = -(-count // 200)
