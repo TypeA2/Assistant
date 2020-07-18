@@ -11,7 +11,10 @@ settings = {
     "tc_general": 455719906244034561,
     "vc_general": 455719906244034563,
     "tc_music": 456588364775161857,
-    "vc_music": 456588393401548821
+    "vc_music": 456588393401548821,
+
+    "danbooru_key": os.environ["DANBOORU_API_KEY"],
+    "danbooru_user": os.environ["DANBOORU_USERNAME"]
 }
 
 session = {
@@ -34,12 +37,12 @@ async def check_updates():
             if c.id != settings["requests"]:
                 channels.append(c)
 
-        print("Got {} different channels".format(len(channels)))
+        print(f"Got {len(channels)} different channels")
 
         for channel in channels:
             tag = channel.topic.strip()
 
-            print("  Checking tag {}".format(tag))
+            print(f"  Checking tag {tag}")
 
             history = await channel.history(limit=1).flatten()
 
@@ -49,33 +52,35 @@ async def check_updates():
                 try:
                     prev = re.search(r"https:\/\/danbooru.donmai.us\/posts\/(\d+)", history[0].content).group(1)
                 except IndexError:
-                    print ("      IndexError when parsing regex for string \"{}\"".format(history[0].embeds[0].url))
+                    print (f"      IndexError when parsing regex for string \"{history[0].embeds[0].url}\"")
                     continue
 
             print("    Got previous post id: {}".format(prev))
 
             try:
-                count = json.loads(requests.get("https://danbooru.donmai.us/counts/posts.json?tags={}+id:>{}".format(tag, prev)).text)["counts"]["posts"]
+                count = json.loads(requests.get(
+                    f"https://danbooru.donmai.us/counts/posts.json?tags={tag}+id:>{prev}").text)["counts"]["posts"]
             except json.decoder.JSONDecodeError:
                 print("  JSONDecodeError: Danbooru might be down")
                 break
 
-            print("    Discovered {} new posts".format(count))
+            print(f"    Discovered {count} new posts")
 
             if count == 0:
                 print("    Continuing...")
                 continue
 
             posts = []
-            baseurl = "https://danbooru.donmai.us/posts.json?{}"
+            baseurl = "https://danbooru.donmai.us/posts.json?"
 
             # https://stackoverflow.com/a/17511341
             pagecount = -(-count // 200)
 
             for p in range(pagecount):
-                data = "tags={}+id:>{}&page={}&limit=200".format(tag, prev, p + 1)
-                print("      Loading page {} of {}\n      Data: {}".format(p + 1, pagecount, data))
-                posts.extend(json.loads(requests.get(baseurl.format(data)).text))
+                data = f"tags={tag}+id:>{prev}&page={p + 1}&limit=200"
+                print(f"      Loading page {p + 1} of {pagecount}\n      Data: {data}")
+                posts.extend(json.loads(requests.get(
+                    f"{baseurl}?{data}&login={settings['danbooru_user']}&api_key={settings['danbooru_key']}").text))
 
             ids = []
             for p in posts:
@@ -83,23 +88,23 @@ async def check_updates():
 
             ids = sorted(list(set(ids)), key=int)
 
-            print("    Got {} new posts, outputting...".format(len(ids)))
+            print(f"    Got {len(ids)} new posts, outputting...")
 
             index = 0
             for i in ids:
                 if index % 50 == 0:
-                    print("      {} out of {}".format(index, len(ids)))
+                    print(f"      {index} out of {len(ids)}")
 
                 index += 1
 
-                await channel.send("`[{}]`\n https://danbooru.donmai.us/posts/{}".format(datetime.datetime.utcnow().replace(tzinfo=tz.tzutc()), i))
+                await channel.send(f"`[{datetime.datetime.utcnow().replace(tzinfo=tz.tzutc())}]`\n https://danbooru.donmai.us/posts/{i}")
 
-            print("      {} out of {}".format(len(ids), len(ids)))
+            print(f"      {len(ids)} out of {len(ids)}")
 
         session["slept"] = 0
         while session["slept"] < 3600:
             if session["slept"] % 60 == 0:
-                print("Sleeping for {} more seconds".format(3600 - session["slept"]))
+                print(f"Sleeping for {3600 - session['slept']} more seconds")
 
             if session["force_refresh"]:
                 session["force_refresh"] = False
@@ -182,7 +187,7 @@ async def add(ctx, tag: str = ""):
                         await new_channel.edit(nsfw=True)
                     except discord.errors.Forbidden:
                         print("    Permission error setting nsfw for \"{}\"".format(name))
-                    
+
                     try:
                         await new_channel.edit(position=index)
                     except discord.errors.Forbidden:
@@ -201,7 +206,7 @@ async def force_refresh(ctx):
             await ctx.send("Insufficient permissions")
         else:
             print("Forcing refresh with {} seconds left".format(3600 - session["slept"]))
-            
+
             session["force_refresh"] = True
 
             await ctx.send("Refreshing as soon as possible...")
